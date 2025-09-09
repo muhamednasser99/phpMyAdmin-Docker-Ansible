@@ -1,0 +1,50 @@
+---
+- name: install docker on remote machine
+  hosts: devops
+  gather_facts: no
+  vars_files:
+    - vars.yml
+  tasks:
+    - name: copy script file to remote machine to install docker
+      ansible.builtin.copy:
+        src: "{{ script_file }}"
+        dest: "{{ installation_path }}"
+        mode: '0755'
+
+    - name: execute scipt file on remote machine to run docker
+      ansible.builtin.shell: 
+        cmd: "{{ installation_path }}/{{ script_file }}"
+
+    - name: create network
+      community.docker.docker_network:
+        name: "{{ network_name }}"
+
+    - name: create volume
+      community.docker.docker_volume:
+        name: "{{ volume_name }}"
+
+    - name: create mysql container
+      community.docker.docker_container:
+        name: db_mysql
+        image: mysql
+        volumes: 
+          - "{{ volume_name }}:/var/lib/mysql"
+        networks: 
+          - name: "{{ network_name }}"
+        ports: 
+          - "3306:3306"
+        env:
+          MYSQL_ROOT_PASSWORD: "123"
+          
+    - name: create phpmyadmin container
+      community.docker.docker_container:
+        name: db_phpmyadmin
+        image: phpmyadmin/phpmyadmin
+        networks: 
+          - name: "{{ network_name }}"
+        ports:
+          - "8080:80"
+        env:
+          PMA_HOST: "db_mysql"
+          MYSQL_ROOT_PASSWORD: "123"
+
