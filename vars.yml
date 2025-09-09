@@ -1,0 +1,4 @@
+installation_path: /home/ansible
+script_file: get-docker.sh
+network_name: db_net
+volume_name: db_vol
